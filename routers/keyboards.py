@@ -12,7 +12,7 @@ def buy_subscribe_keyboard() -> InlineKeyboardBuilder:
 
     keyboard.row(
         InlineKeyboardButton(text="Купить 💰", callback_data="buy_sub"),
-        InlineKeyboardButton(text="Статус подписки", callback_data="sub_status")
+        InlineKeyboardButton(text="Статус 🎫", callback_data="sub_status")
                  )
     keyboard.adjust(2)
     return keyboard

@@ -16,9 +16,8 @@ router = Router()
 router.message.middleware.register(CheckPrivateMessageMiddleware())
 
 
-@router.callback_query(lambda callback: callback.data == "back_menu")
 @router.message(Command("start"))
-async def start_message(message: types.Message | types.CallbackQuery) -> None:
+async def start_message(message: types.Message) -> None:
     """Команда /start"""
     if not is_user_exists(str(message.from_user.id)):
         user_model = UserCreate(
@@ -29,13 +28,19 @@ async def start_message(message: types.Message | types.CallbackQuery) -> None:
         )
         db.create_user(user_model)
 
+    await message.answer("Для управления подпиской на канал выберите команду /menu во вкладке \"Меню\" или нажмите на команду прямо в сообщении.\n\n"
+                         "Для просмотра инструкции и обращения в поддержку выберите команду /help")
+
+
+@router.callback_query(lambda callback: callback.data == "back_menu")
+@router.message(Command("menu"))
+async def main_menu(message: types.Message | types.CallbackQuery) -> None:
     if type(message) == types.Message:
-        await message.answer("Hello message")
-        await message.answer("Вы можете приобрести подписку на канал",
+        await message.answer("Вы можете приобрести или продлить подписку на канал",
                              reply_markup=kb.buy_subscribe_keyboard().as_markup())
     else:
-        await message.message.edit_text("Вы можете приобрести подписку на канал",
-                                        reply_markup=kb.buy_subscribe_keyboard().as_markup())
+        await message.message.edit_text("Вы можете приобрести или продлить подписку на канал",
+                             reply_markup=kb.buy_subscribe_keyboard().as_markup())
 
 
 @router.callback_query(lambda callback: callback.data == "buy_sub")
