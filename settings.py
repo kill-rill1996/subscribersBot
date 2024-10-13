@@ -1,13 +1,14 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env")
+
     bot_token: str
     channel_id: str
+    admins: list
+    db_url: str
 
 
-settings = Settings(
-    _env_file=".env",
-    _env_file_encoding="utf-8"
-)
+settings = Settings()
 

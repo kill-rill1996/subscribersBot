@@ -5,14 +5,12 @@ import requests
 from aiogram import Router, types
 from aiogram.filters import Command
 
+from middleware import CheckIsAdminMiddleware, CheckPrivateMessageMiddleware
 from settings import settings
 
 router = Router()
-
-
-@router.message(Command("start"))
-async def start_message(message: types.Message) -> None:
-    await message.reply("Privet")
+router.message.middleware.register(CheckPrivateMessageMiddleware())
+router.message.middleware.register(CheckIsAdminMiddleware(settings.admins))
 
 
 @router.message(Command("block_user"))
@@ -39,7 +37,7 @@ async def get_invite_link(message: types.Message, bot: aiogram.Bot) -> None:
                                       name="Username1",
                                       expire_date=int(expire_date.timestamp()),
                                       member_limit=1)
-    await message.answer(f"{invite_link}")
+    await message.answer(f"{invite_link.invite_link}")
 
 
 @router.message(Command("delete_link"))

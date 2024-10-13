@@ -13,7 +13,7 @@ from routers import admin, users
 async def set_commands(bot: io.Bot):
     """Перечень команд для бота"""
     commands = [
-        BotCommand(command="start", description="Зпуск бота"),
+        BotCommand(command="start", description="Запуск бота"),
         BotCommand(command="help", description="Инструкция и поддержка"),
     ]
 
@@ -29,6 +29,7 @@ async def start_bot() -> None:
     """Запуск бота"""
     bot = io.Bot(settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     await set_commands(bot)
+    await set_description(bot)
 
     storage = MemoryStorage()
     dispatcher = io.Dispatcher(storage=storage)
@@ -39,4 +40,5 @@ async def start_bot() -> None:
 
 
 if __name__ == "__main__":
+    print(settings.db_url)
     asyncio.run(start_bot())
