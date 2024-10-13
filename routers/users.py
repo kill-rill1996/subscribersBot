@@ -41,7 +41,7 @@ async def start_message(message: types.Message | types.CallbackQuery) -> None:
 @router.callback_query(lambda callback: callback.data == "buy_sub")
 async def buy_menu(callback: types.CallbackQuery) -> None:
     """Меню выбора периода подписки"""
-    await callback.message.edit_text("Выберите период подписки📆", reply_markup=kb.payment_period_subscribe().as_markup())
+    await callback.message.edit_text("Выберите период подписки 🗓", reply_markup=kb.payment_period_subscribe().as_markup())
 
 
 @router.callback_query(lambda callback: callback.data.split('_')[0] == "subPeriod")
@@ -81,7 +81,7 @@ async def successful_payment(message: types.Message):
     if user_with_sub.subscription:
         new_expire_date = db.update_subscription_expire_date(tg_id, months)
         await message.answer(f"Оплата прошла успешно ✅\n\n"
-                             f"Подписка продлена до {datetime.strftime(new_expire_date, '%d.%m.%Y')} 🗓️")
+                             f"Подписка продлена до <b>{datetime.strftime(new_expire_date, '%d.%m.%Y')}</b> 🗓️")
         await message.delete()
 
     # создание подписки
@@ -96,7 +96,7 @@ async def successful_payment(message: types.Message):
         new_subscription = db.create_subscription(subscription_model)
 
         await message.answer(f"Оплата прошла успешно ✅\n\n"
-                             f"Подписка оформлена до {datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')} 🗓️")
+                             f"Подписка оформлена до <b>{datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')}</b> 🗓️")
         await message.delete()
 
 
