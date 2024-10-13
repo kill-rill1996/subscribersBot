@@ -16,7 +16,7 @@ def get_help_message() -> str:
 
 
 def subscription_info(user: tables.User) -> str:
-    if not user.subscription[0]:
+    if not user.subscription:
         return "У вас пока нет подписки, вы можете приобрести ее в главном меню по кнопке \"Купить 💰\""
 
     message = ""
