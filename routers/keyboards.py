@@ -10,7 +10,11 @@ def buy_subscribe_keyboard() -> InlineKeyboardBuilder:
     """Создание клавиатуры для выбора группы"""
     keyboard = InlineKeyboardBuilder()
 
-    keyboard.row(InlineKeyboardButton(text="Купить подписку💰", callback_data="buy_sub"))
+    keyboard.row(
+        InlineKeyboardButton(text="Купить 💰", callback_data="buy_sub"),
+        InlineKeyboardButton(text="Статус подписки", callback_data="sub_status")
+                 )
+    keyboard.adjust(2)
     return keyboard
 
 
@@ -33,4 +37,11 @@ def payment_period_subscribe() -> InlineKeyboardBuilder:
     #         text="12 мес", callback_data=f"subPeriod_12"),
     # )
 
+    return keyboard
+
+
+def back_to_main_menu() -> InlineKeyboardBuilder:
+    """Возвращение на главный экран (аналогично /start)"""
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(InlineKeyboardButton(text="<< Назад", callback_data="back_menu"))
     return keyboard

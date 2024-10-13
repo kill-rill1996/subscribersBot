@@ -2,7 +2,6 @@ from datetime import datetime
 import pytz
 from aiogram import Router, types, Bot, F
 from aiogram.filters import Command
-import messages as ms
 from middleware import CheckPrivateMessageMiddleware
 from database import service as db
 
@@ -10,31 +9,32 @@ from database.models import UserCreate, OperationCreate
 from .utils import is_user_exists
 from routers import keyboards as kb
 from .payments import create_payment_invoice
-
+from routers import messages as ms
 
 router = Router()
 router.message.middleware.register(CheckPrivateMessageMiddleware())
 
 
+@router.callback_query(lambda callback: callback.data == "back_menu")
 @router.message(Command("start"))
-async def start_message(message: types.Message) -> None:
+async def start_message(message: types.Message | types.CallbackQuery) -> None:
     """Команда /start"""
-    if is_user_exists(str(message.from_user.id)):
+    if not is_user_exists(str(message.from_user.id)):
+        user_model = UserCreate(
+            tg_id=str(message.from_user.id),
+            username=message.from_user.username,
+            firstname=message.from_user.first_name,
+            lastname=message.from_user.last_name
+        )
+        db.create_user(user_model)
+
+    if type(message) == types.Message:
         await message.answer("Hello message")
         await message.answer("Вы можете приобрести подписку на канал",
                              reply_markup=kb.buy_subscribe_keyboard().as_markup())
-        return
-
-    user_model = UserCreate(
-        tg_id=str(message.from_user.id),
-        username=message.from_user.username,
-        firstname=message.from_user.first_name,
-        lastname=message.from_user.last_name
-    )
-    db.create_user(user_model)
-    await message.answer("Hello message")
-    await message.answer("Вы можете приобрести подписку на канал",
-                         reply_markup=kb.buy_subscribe_keyboard().as_markup())
+    else:
+        await message.message.edit_text("Вы можете приобрести подписку на канал",
+                                        reply_markup=kb.buy_subscribe_keyboard().as_markup())
 
 
 @router.callback_query(lambda callback: callback.data == "buy_sub")
@@ -62,6 +62,16 @@ async def pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery, bot: Bo
 async def successful_payment(message: types.Message):
     await message.answer("Оплата прошла успешно")
     await message.delete()
+
+
+@router.callback_query(lambda callback: callback.data == "sub_status")
+async def check_sub_status(callback: types.CallbackQuery):
+    """Проверка свой подписки"""
+    tg_id = callback.from_user.id
+    user = db.get_user_subscription(str(tg_id))
+    msg = ms.subscription_info(user)
+
+    await callback.message.edit_text(msg, reply_markup=kb.back_to_main_menu().as_markup())
 
 
 

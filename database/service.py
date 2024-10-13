@@ -1,3 +1,5 @@
+from sqlalchemy.orm import joinedload
+
 from database import tables
 from .database import Session
 from .models import UserCreate, OperationCreate, User
@@ -35,7 +37,7 @@ def get_user_by_tg_id(tg_id: str) -> tables.User:
 def delete_user(user_id: int) -> None:
     """Удаление юзера по id"""
     with Session() as session:
-        user = get_user_by_tg_id(user_id)
+        user = get_user_by_tg_id(str(user_id))
         session.delete(user)
         session.commit()
 
@@ -49,4 +51,13 @@ def create_operation(operation_model: OperationCreate) -> tables.Operation:
         session.commit()
         session.refresh(operation)
         return operation
+
+
+# SUBSCRIPTION
+def get_user_subscription(tg_id: str) -> tables.User:
+    """Получение подписки по id пользователя"""
+    with Session() as session:
+        user = session.query(tables.User).filter(tables.User.tg_id == tg_id)\
+            .options(joinedload(tables.User.subscription)).first()
+        return user
 
