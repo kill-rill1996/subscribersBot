@@ -7,6 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
 from settings import settings
+from database import database
 from routers import admin, users
 
 
@@ -40,5 +41,5 @@ async def start_bot() -> None:
 
 
 if __name__ == "__main__":
-    print(settings.db_url)
+    database.create_db()
     asyncio.run(start_bot())
