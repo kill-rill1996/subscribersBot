@@ -53,3 +53,4 @@ def invite_link_keyboard(link: str) -> InlineKeyboardBuilder:
     keyboard.row(InlineKeyboardButton(text="🔗 Вступить в группу", url=link))
     return keyboard
 
+

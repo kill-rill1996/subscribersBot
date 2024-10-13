@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import aiogram
 import pytz
 from aiogram import Router, types, Bot, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from middleware import CheckPrivateMessageMiddleware
 from database import service as db
@@ -14,6 +15,14 @@ from .payments import create_payment_invoice
 
 router = Router()
 router.message.middleware.register(CheckPrivateMessageMiddleware())
+
+
+# BLOCK OTHER TYPES
+@router.message(~F.content_type.in_({'text', 'pre_checkout_query', 'successful_payment'}))
+async def block_types_handler(message: types.Message) -> None:
+    await message.answer("Некорректный тип данных в сообщении (принимается только текст)\n\n"
+                         "Чтобы посмотреть инструкцию по использованию бота выберите команду /help во вкладке \"Меню\" "
+                         "или нажмите на команду прямо в сообщении")
 
 
 @router.message(Command("start"))
@@ -134,3 +143,5 @@ async def help_handler(message: types.Message) -> None:
     """Help message"""
     msg = ms.get_help_message()
     await message.answer(msg)
+
+
