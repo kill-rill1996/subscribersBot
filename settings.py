@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     channel_id: str
     admins: list
     db_url: str
+    payment_token: str
 
 
 settings = Settings()

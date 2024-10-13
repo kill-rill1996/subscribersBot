@@ -23,7 +23,7 @@ def get_user_by_id(user_id: int) -> tables.User:
         return user
 
 
-def get_user_by_tg_id(tg_id: int) -> tables.User:
+def get_user_by_tg_id(tg_id: str) -> tables.User:
     """Получение юзера по tg_id"""
     with Session() as session:
         user = session.query(tables.User) \
