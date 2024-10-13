@@ -70,3 +70,19 @@ def get_user_subscription_by_tg_id(tg_id: str) -> tables.User:
         user = session.query(tables.User).filter(tables.User.tg_id == tg_id)\
             .options(joinedload(tables.User.subscription)).first()
         return user
+
+
+def get_all_users() -> list[tables.User]:
+    """Все пользователи"""
+    with Session() as session:
+        users = session.query(tables.User).options(joinedload(tables.User.subscription))
+        return users
+
+
+def change_sub_status_to_false(user_id: int):
+    """Меняет статус подписки на false"""
+    with Session() as session:
+        subscription = session.query(tables.Subscription).filter_by(user_id=user_id).first()
+        subscription.is_active = False
+        session.commit()
+
