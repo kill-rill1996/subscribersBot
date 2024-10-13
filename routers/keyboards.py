@@ -36,7 +36,7 @@ def payment_period_subscribe() -> InlineKeyboardBuilder:
     #     InlineKeyboardButton(
     #         text="12 мес", callback_data=f"subPeriod_12"),
     # )
-
+    keyboard.row(InlineKeyboardButton(text="<< Назад", callback_data="back_menu"))
     return keyboard
 
 

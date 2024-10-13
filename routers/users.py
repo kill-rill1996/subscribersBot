@@ -62,10 +62,11 @@ async def pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery, bot: Bo
 @router.message(F.successful_payment)
 async def successful_payment(message: types.Message):
     amount = int(message.successful_payment.invoice_payload)
-    months = amount / 100
+    months = int(amount / 100)
+    tg_id = str(message.from_user.id)
 
     # создание операции
-    user = db.get_user_by_tg_id(str(message.from_user.id))
+    user = db.get_user_by_tg_id(tg_id)
     operation_model = OperationCreate(
         created_at=datetime.now(pytz.timezone('Europe/Moscow')),
         amount=amount,
@@ -73,18 +74,30 @@ async def successful_payment(message: types.Message):
     )
     db.create_operation(operation_model)
 
-    # создание подписки
-    expire_date = datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(days=30*months)
-    subscription_model = SubscriptionCreate(
-        expire_date=expire_date,
-        is_active=True,
-        user_id=user.id
-    )
-    new_subscription = db.create_subscription(subscription_model)
+    # создание подписки и продление подписки
+    user_with_sub = db.get_user_subscription_by_tg_id(str(message.from_user.id))
 
-    await message.answer(f"Оплата прошла успешно ✅\n\n"
-                         f"Подписка оформлена до {datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')} 🗓️")
-    await message.delete()
+    # продление подписки
+    if user_with_sub.subscription:
+        new_expire_date = db.update_subscription_expire_date(tg_id, months)
+        await message.answer(f"Оплата прошла успешно ✅\n\n"
+                             f"Подписка продлена до {datetime.strftime(new_expire_date, '%d.%m.%Y')} 🗓️")
+        await message.delete()
+
+    # создание подписки
+    else:
+        # создание подписки
+        expire_date = datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(days=30*months)
+        subscription_model = SubscriptionCreate(
+            expire_date=expire_date,
+            is_active=True,
+            user_id=user.id
+        )
+        new_subscription = db.create_subscription(subscription_model)
+
+        await message.answer(f"Оплата прошла успешно ✅\n\n"
+                             f"Подписка оформлена до {datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')} 🗓️")
+        await message.delete()
 
 
 @router.callback_query(lambda callback: callback.data == "sub_status")
