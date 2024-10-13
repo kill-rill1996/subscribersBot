@@ -14,7 +14,7 @@ from routers import admin, users
 async def set_commands(bot: io.Bot):
     """Перечень команд для бота"""
     commands = [
-        BotCommand(command="start", description="Запуск бота"),
+        BotCommand(command="start", description="Главное меню"),
         BotCommand(command="help", description="Инструкция и поддержка"),
     ]
 
