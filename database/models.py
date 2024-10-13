@@ -19,3 +19,8 @@ class OperationCreate(BaseModel):
     amount: int
     user_id: int
 
+
+class SubscriptionCreate(BaseModel):
+    user_id: int
+    expire_date: datetime
+    is_active: bool

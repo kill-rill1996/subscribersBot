@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
 import pytz
 from aiogram import Router, types, Bot, F
 from aiogram.filters import Command
 from middleware import CheckPrivateMessageMiddleware
 from database import service as db
 
-from database.models import UserCreate, OperationCreate
+from database.models import UserCreate, OperationCreate, SubscriptionCreate
 from .utils import is_user_exists
 from routers import keyboards as kb
 from .payments import create_payment_invoice
@@ -60,7 +61,29 @@ async def pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery, bot: Bo
 
 @router.message(F.successful_payment)
 async def successful_payment(message: types.Message):
-    await message.answer("Оплата прошла успешно")
+    amount = int(message.successful_payment.invoice_payload)
+    months = amount / 100
+
+    # создание операции
+    user = db.get_user_by_tg_id(str(message.from_user.id))
+    operation_model = OperationCreate(
+        created_at=datetime.now(pytz.timezone('Europe/Moscow')),
+        amount=amount,
+        user_id=user.id
+    )
+    db.create_operation(operation_model)
+
+    # создание подписки
+    expire_date = datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(days=30*months)
+    subscription_model = SubscriptionCreate(
+        expire_date=expire_date,
+        is_active=True,
+        user_id=user.id
+    )
+    new_subscription = db.create_subscription(subscription_model)
+
+    await message.answer(f"Оплата прошла успешно ✅\n\n"
+                         f"Подписка оформлена до {datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')} 🗓️")
     await message.delete()
 
 
@@ -68,31 +91,10 @@ async def successful_payment(message: types.Message):
 async def check_sub_status(callback: types.CallbackQuery):
     """Проверка свой подписки"""
     tg_id = callback.from_user.id
-    user = db.get_user_subscription(str(tg_id))
+    user = db.get_user_subscription_by_tg_id(str(tg_id))
     msg = ms.subscription_info(user)
 
     await callback.message.edit_text(msg, reply_markup=kb.back_to_main_menu().as_markup())
-
-
-
-# @router.message(Command("start"))
-# async def start_message(message: types.Message) -> None:
-#     user_model = UserCreate(
-#         tg_id=str(message.from_user.id),
-#         username=message.from_user.username,
-#         firstname=message.from_user.first_name,
-#         lastname=message.from_user.last_name
-#     )
-#     user = db.create_user(user_model)
-#
-#     operation_model = OperationCreate(
-#         created_at=datetime.now(pytz.timezone('Europe/Moscow')),
-#         amount=300,
-#         user_id=user.id
-#     )
-#     operation = db.create_operation(operation_model)
-#     operation = db.create_operation(operation_model)
-#     await message.answer(f"Operation {operation.id} {operation.amount} {operation.created_at} {operation.user_id} created")
 
 
 @router.message(Command("delete"))

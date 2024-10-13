@@ -2,11 +2,11 @@ from sqlalchemy.orm import joinedload
 
 from database import tables
 from .database import Session
-from .models import UserCreate, OperationCreate, User
+from .models import UserCreate, OperationCreate, User, SubscriptionCreate
 
 
 # USER
-def create_user(user_model: UserCreate) -> User:
+def create_user(user_model: UserCreate) -> tables.User:
     """Добавление пользователя"""
     with Session() as session:
         user = tables.User(**user_model.dict())
@@ -54,10 +54,19 @@ def create_operation(operation_model: OperationCreate) -> tables.Operation:
 
 
 # SUBSCRIPTION
-def get_user_subscription(tg_id: str) -> tables.User:
+def create_subscription(subscription_model: SubscriptionCreate) -> tables.Subscription:
+    """Создание подписки"""
+    with Session() as session:
+        subscription = tables.Subscription(**subscription_model.dict())
+        session.add(subscription)
+        session.commit()
+        session.refresh(subscription)
+        return subscription
+
+
+def get_user_subscription_by_tg_id(tg_id: str) -> tables.User:
     """Получение подписки по id пользователя"""
     with Session() as session:
         user = session.query(tables.User).filter(tables.User.tg_id == tg_id)\
             .options(joinedload(tables.User.subscription)).first()
         return user
-
