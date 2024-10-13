@@ -11,7 +11,7 @@ def buy_subscribe_keyboard() -> InlineKeyboardBuilder:
     keyboard = InlineKeyboardBuilder()
 
     keyboard.row(
-        InlineKeyboardButton(text="Купить 💰", callback_data="buy_sub"),
+        InlineKeyboardButton(text="Купить 💸", callback_data="buy_sub"),
         InlineKeyboardButton(text="Статус 🎫", callback_data="sub_status")
                  )
     keyboard.adjust(2)
@@ -45,3 +45,11 @@ def back_to_main_menu() -> InlineKeyboardBuilder:
     keyboard = InlineKeyboardBuilder()
     keyboard.row(InlineKeyboardButton(text="<< Назад", callback_data="back_menu"))
     return keyboard
+
+
+def invite_link_keyboard(link: str) -> InlineKeyboardBuilder:
+    """Клавиатура со ссылкой на вступление в группу"""
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(InlineKeyboardButton(text="🔗 Вступить в группу", url=link))
+    return keyboard
+

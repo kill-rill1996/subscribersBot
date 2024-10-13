@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import aiogram
 import pytz
 from aiogram import Router, types, Bot, F
 from aiogram.filters import Command
@@ -7,10 +8,9 @@ from middleware import CheckPrivateMessageMiddleware
 from database import service as db
 
 from database.models import UserCreate, OperationCreate, SubscriptionCreate
-from .utils import is_user_exists
-from routers import keyboards as kb
+from .utils import is_user_exists, generate_invite_link
+from routers import messages as ms, keyboards as kb
 from .payments import create_payment_invoice
-from routers import messages as ms
 
 router = Router()
 router.message.middleware.register(CheckPrivateMessageMiddleware())
@@ -28,7 +28,8 @@ async def start_message(message: types.Message) -> None:
         )
         db.create_user(user_model)
 
-    await message.answer("Для управления подпиской на канал выберите команду /menu во вкладке \"Меню\" или нажмите на команду прямо в сообщении.\n\n"
+    await message.answer("Для управления подпиской на канал выберите команду /menu во вкладке \"Меню\" или "
+                         "нажмите на команду прямо в сообщении.\n\n"
                          "Для просмотра инструкции и обращения в поддержку выберите команду /help")
 
 
@@ -65,7 +66,7 @@ async def pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery, bot: Bo
 
 
 @router.message(F.successful_payment)
-async def successful_payment(message: types.Message):
+async def successful_payment(message: types.Message, bot: aiogram.Bot):
     amount = int(message.successful_payment.invoice_payload)
     months = int(amount / 100)
     tg_id = str(message.from_user.id)
@@ -82,12 +83,17 @@ async def successful_payment(message: types.Message):
     # создание подписки и продление подписки
     user_with_sub = db.get_user_subscription_by_tg_id(str(message.from_user.id))
 
+    # получение ссылки на подписку
+    name = message.from_user.username if message.from_user.username else message.from_user.first_name
+    invite_link = await generate_invite_link(bot, name)
+
     # продление подписки
     if user_with_sub.subscription:
         new_expire_date = db.update_subscription_expire_date(tg_id, months)
-        await message.answer(f"Оплата прошла успешно ✅\n\n"
-                             f"Подписка продлена до <b>{datetime.strftime(new_expire_date, '%d.%m.%Y')}</b> 🗓️")
-        await message.delete()
+        await message.answer(f"Оплата прошла успешно ✅\n"
+                             f"Подписка продлена до <b>{datetime.strftime(new_expire_date, '%d.%m.%Y')}</b> 🗓️\n\n"
+                             f"<b>Ссылка на вступление в канал активна 1 день и может быть использована только 1 раз</b>",
+                             reply_markup=kb.invite_link_keyboard(invite_link).as_markup())
 
     # создание подписки
     else:
@@ -100,9 +106,10 @@ async def successful_payment(message: types.Message):
         )
         new_subscription = db.create_subscription(subscription_model)
 
-        await message.answer(f"Оплата прошла успешно ✅\n\n"
-                             f"Подписка оформлена до <b>{datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')}</b> 🗓️")
-        await message.delete()
+        await message.answer(f"Оплата прошла успешно ✅\n"
+                             f"Подписка оформлена до <b>{datetime.strftime(new_subscription.expire_date, '%d.%m.%Y')}</b> 🗓️\n\n"
+                             f"<b>Ссылка на вступление в канал действует 1 день и может быть использована только 1 раз</b>",
+                             reply_markup=kb.invite_link_keyboard(invite_link).as_markup())
 
 
 @router.callback_query(lambda callback: callback.data == "sub_status")
