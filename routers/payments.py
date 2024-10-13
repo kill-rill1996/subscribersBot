@@ -17,12 +17,13 @@ def create_payment_invoice(sub_period: str) -> dict:
         label += " месяц"
         description += " месяц"
 
-    payment_invoice = {"title": "Подписка на канал",
-                       "description": description,
-                       "payload": f"{int(sub_period) * 100}",
-                       "currency": "RUB",
-                       "provider_token": settings.payment_token,
-                       "prices": [LabeledPrice(label=label, amount=int(sub_period)*100 * 100)]
-                       }
+    payment_invoice = {
+        "title": "Подписка на канал",
+        "description": description,
+        "payload": f"{int(sub_period) * 100}",
+        "currency": "RUB", "provider_token": settings.payment_token,
+        "prices": [LabeledPrice(label=label, amount=int(sub_period) * 100 * 100)],
+        "protect_content": True
+    }
 
     return payment_invoice

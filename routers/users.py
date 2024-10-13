@@ -44,7 +44,7 @@ async def buy_menu(callback: types.CallbackQuery) -> None:
 
 
 @router.callback_query(lambda callback: callback.data.split('_')[0] == "subPeriod")
-async def buy_menu(callback: types.CallbackQuery) -> None:
+async def create_invoice_handler(callback: types.CallbackQuery) -> None:
     """Формирование заказа для оплаты"""
     sub_period = callback.data.split("_")[1]
     payment_invoice = create_payment_invoice(sub_period)
@@ -58,7 +58,7 @@ async def pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery, bot: Bo
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
 
 
-@router.message(F.content_type == types.ContentType.SUCCESSFUL_PAYMENT)
+@router.message(F.successful_payment)
 async def successful_payment(message: types.Message):
     await message.answer("Оплата прошла успешно")
     await message.delete()
