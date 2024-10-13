@@ -4,7 +4,6 @@ import aiogram
 import requests
 from aiogram import Router, types
 from aiogram.filters import Command
-import requests_async as r
 
 from settings import settings
 
